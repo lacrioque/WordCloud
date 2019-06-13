@@ -149,6 +149,7 @@ class WordCloud extends PluginBase
         // $this->registerScript('assets/build/wordcloudwc2.js');
         
         //D3 variant
+        $this->registerStyle('assets/css/wordcloud.css');
         $this->registerScript('assets/lib/d3.min.js');
         $this->registerScript('assets/lib/d3.layout.cloud.js');
         $this->registerScript('assets/build/wordcloudd3.js');

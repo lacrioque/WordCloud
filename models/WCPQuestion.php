@@ -49,7 +49,6 @@ class WCPQuestion extends Question {
         if($wordCount == 0 ) {
             $wordCount = 500;
         }
-
         if(count($aWords) > $wordCount ) {
             return array_slice($aWords,0,($wordCount+1));
         }

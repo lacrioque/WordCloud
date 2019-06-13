@@ -234,31 +234,43 @@
 	  const questionSelector = '#WordCloud--QuestionSelector';
 	  const loadingBlock = '#WordCloud--loadingBlock';
 	  const imageContainer = '#WordCloud--imagecontainer';
-	  const downloadButtonSelector = '#WordCloud--Action--DownloadPNG'; //OPTIONS
+	  const downloadButtonSelector = '#WordCloud--Action--DownloadPNG';
+	  const colorPickerClass = '.WordCloud--Action--ColorPicker';
+	  const colorPickerStartColorSelector = '#WordCloud--ColorPicker-startColor';
+	  const colorPickerFinalColorSelector = '#WordCloud--ColorPicker-finalColor'; //OPTIONS
 
 	  const cloudWidth = options.cloudWidth || 800;
 	  const cloudHeight = options.cloudHeight || 500;
 	  const fontPadding = options.fontPadding || 5;
 	  const wordAngle = options.wordAngle || 45;
 	  const minFontSize = options.minFontSize || 10;
-	  let loading = false;
-	  let svg = null;
+	  let currentWordList = null;
 
-	  const toggleLoader = () => {
-	    if (loading) {
-	      $(loadingBlock).css('display', 'none');
-	    } else {
+	  const toggleLoader = isLoading => {
+	    if (isLoading) {
 	      $(loadingBlock).css('display', '');
+	    } else {
+	      $(loadingBlock).css('display', 'none');
 	    }
-
-	    loading = !loading;
 	  };
 
-	  const drawWordCloud = wordListObject => {
-	    const wordList = LS.ld.toPairs(wordListObject);
+	  const getStartColor = function () {
+	    return $(colorPickerStartColorSelector).val();
+	  };
+
+	  const getFinalColor = function () {
+	    return $(colorPickerFinalColorSelector).val();
+	  };
+
+	  const setCurrentWordList = wordListObject => {
+	    currentWordList = LS.ld.toPairs(wordListObject);
+	  };
+
+	  const drawWordCloud = (wordListObject = null) => {
 	    $(imageContainer).html('');
-	    const color = d3.scaleLinear().domain([0, 1, 2, 3, 4, 5, 6, 10, 15, 20, 100].reverse()).range(["#cd113b", "#bc1642", "#ab1c4a", "#992251", "#882758", "#772d5f", "#663366", "#55386e", "#433e75", "#32447c", "#214983", "#213262"]);
-	    d3.layout.cloud().size([cloudWidth, cloudHeight]).words(wordList.map(word => {
+	    const color = d3.scaleLinear().domain([0, 100].reverse()).range([getStartColor(), getFinalColor()]);
+	    toggleLoader(true);
+	    d3.layout.cloud().size([cloudWidth, cloudHeight]).words(currentWordList.map(word => {
 	      return {
 	        text: word[0],
 	        size: (word[1] < minFontSize ? minFontSize : word[1]) * 3
@@ -271,7 +283,7 @@
 	    }).on("end", draw).start();
 
 	    function draw(words) {
-	      svg = d3.select(imageContainer).append("svg").attr("width", cloudWidth).attr("height", cloudHeight).attr("class", "wordcloud").append("g") // without the transform, words words would get cutoff to the left and top, they would
+	      d3.select(imageContainer).append("svg").attr("width", cloudWidth).attr("height", cloudHeight).attr("class", "wordcloud").append("g") // without the transform, words words would get cutoff to the left and top, they would
 	      // appear outside of the SVG area
 	      .attr("transform", "translate(" + cloudWidth / 2 + "," + cloudHeight / 2 + ")").selectAll("text").data(words).enter().append("text").style("font-size", function (d) {
 	        return d.size + "px";
@@ -282,21 +294,25 @@
 	      }).text(function (d) {
 	        return d.text;
 	      });
+	      toggleLoader(false);
 	    }
 	  };
 
 	  const reloadQuestionData = () => {
 	    let currentQid = $(questionSelector).val();
-	    toggleLoader();
+	    toggleLoader(true);
 	    $.ajax({
 	      url: options.getQuestionDataUrl,
 	      data: {
 	        qid: currentQid
 	      },
-	      success: drawWordCloud,
+	      success: wordListObject => {
+	        setCurrentWordList(wordListObject);
+	        drawWordCloud();
+	      },
 	      error: (err, xhr) => {
 	        console.error("WordCloudError => ", err);
-	        toggleLoader();
+	        toggleLoader(false);
 	      }
 	    });
 	  };
@@ -312,6 +328,10 @@
 	  const bind = () => {
 	    $(questionSelector).on('change', reloadQuestionData);
 	    $(downloadButtonSelector).on('click', triggerDownload);
+	    $(colorPickerClass).on('change', function () {
+	      drawWordCloud();
+	    });
+	    toggleLoader(false);
 	  };
 
 	  return {
