@@ -38,7 +38,7 @@
                     <select id="WordCloud--QuestionSelector" name="WordCloudQuestionSelector"  class="form-control">
                         <option value="---">No question selected</option>
                         <?php foreach($questions as $oQuestion) {
-                            printf("<option value='%s'>(%s) %s</option>",$oQuestion->qid, $oQuestion->title, ellipsize($oQuestion->question, 40));
+                            printf("<option value='%s-%s'>(%s) %s</option>",$oQuestion->qid, $oQuestion->language, $oQuestion->title, ellipsize($oQuestion->question, 40));
                         } ?>
                     </select>
                 </div>
@@ -48,14 +48,16 @@
             <hr/>
         </div>
         <div class="row">
-            <div id="WordCloud--loadingBlock" class="loader--loaderWidget ls-flex ls-flex-column align-content-center align-items-center" style="min-height: 100%;">
-                <div class="ls-flex align-content-center align-items-center">
-                    <div class="loader-wordcloud text-center">
-                        <div class="contain-pulse animate-pulse">
-                            <div class="square"></div>
-                            <div class="square"></div>
-                            <div class="square"></div>
-                            <div class="square"></div>
+            <div id="WordCloud--loadingBlock" class="col-xs-12 container-center">
+                <div class="loader--loaderWidget ls-flex ls-flex-column align-content-center align-items-center" style="min-height: 100%; margin-top:25px;">
+                    <div class="ls-flex align-content-center align-items-center">
+                        <div class="loader-wordcloud text-center">
+                            <div class="contain-pulse animate-pulse">
+                                <div class="square"></div>
+                                <div class="square"></div>
+                                <div class="square"></div>
+                                <div class="square"></div>
+                            </div>
                         </div>
                     </div>
                 </div>
@@ -66,8 +68,9 @@
     </div>
 </div>
 <script>
-var WordCloudFactory = LS.getWordCloudProcessorFactory();
-var wordCloudRenderer = WordCloudFactory({
+$(document).on('ready pjax:scriptcomplete', function(){ 
+    var WordCloudFactory = LS.getWordCloudProcessorFactory();
+    var wordCloudRenderer = WordCloudFactory({
         getQuestionDataUrl: '<?=Yii::app()->createUrl('/plugins/direct/',['plugin' => 'WordCloud', 'function' => 'getWordCloudData'])?>',
         cloudWidth: <?=$pluginSettings['cloudWidth']?>,
         cloudHeight: <?=$pluginSettings['cloudHeight']?>,
@@ -75,7 +78,9 @@ var wordCloudRenderer = WordCloudFactory({
         wordAngle: <?=$pluginSettings['wordAngle']?>,
         minFontSize: <?=$pluginSettings['minFontSize']?>
     });
-$(document).on('ready pjax:scriptcomplete', function(){ wordCloudRenderer.bind();});
+    wordCloudRenderer.bind();
+
+});
 </script>
 
 

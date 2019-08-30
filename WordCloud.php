@@ -149,7 +149,7 @@ class WordCloud extends PluginBase
         // $this->registerScript('assets/build/wordcloudwc2.js');
         
         //D3 variant
-        $this->registerStyle('assets/css/wordcloud.css');
+        $this->registerCss('assets/css/wordcloud.css');
         $this->registerScript('assets/lib/d3.min.js');
         $this->registerScript('assets/lib/d3.layout.cloud.js');
         $this->registerScript('assets/build/wordcloudd3.js');
@@ -158,12 +158,12 @@ class WordCloud extends PluginBase
     }
 
     public function getWordCloudData($oEvent, $oRequest) {
-        $iQuestionId = $oRequest->getParam('qid');
-        $oCloudQuestion = WCPQuestion::model()->findByPk(['qid' => $iQuestionId, 'language' => Yii::app()->language]);
+        list($iQuestionId, $language) = explode("-",$oRequest->getParam('qid'));
+        $oCloudQuestion = WCPQuestion::model()->findByAttributes(['qid' => $iQuestionId, 'language' => $language]);
     
-        if(!in_array($oCloudQuestion->type, ["Q","T","U","S"])) {
-            throw new CHttpExeption('Question type not supported for word cloud');
-        }
+        // if(!in_array($oCloudQuestion->type, ["Q","T","U","S"])) {
+        //     throw new CHttpException('Question type not supported for word cloud');
+        // }
 
         $badWords = $this->get('badwords',null,null,null);
         $wordCount = $this->get('wordCount',null,null,0);
@@ -208,7 +208,7 @@ class WordCloud extends PluginBase
      * @param string $parentPlugin
      * @return void
      */
-    protected function registerScript($relativePathToScript, $parentPlugin=null)
+    protected function registerScript($relativePathToScript, $parentPlugin=null, $pos = LSYii_ClientScript::POS_BEGIN)
     {
         $parentPlugin = $parentPlugin===null ? get_class($this) : $parentPlugin;
 
@@ -226,7 +226,7 @@ class WordCloud extends PluginBase
                 Yii::app()->getBasePath().'/core/plugins/'.$parentPlugin.'/'.$relativePathToScript
             );
         }
-        Yii::app()->getClientScript()->registerScriptFile($scriptToRegister);
+        Yii::app()->getClientScript()->registerScriptFile($scriptToRegister, $pos);
     }
 
     /**
